@@ -1,5 +1,5 @@
 // 连通域去噪（移除小面积区域）
-const minAreaThreshold = 30; // 连通域占图像像素比例，根据最小字符笔画宽度设定
+const minAreaThreshold = 0.035// 连通域占图像像素比例，根据最小字符笔画宽度设定
 const colorSD = 25; // 色彩标准差，标准差内的色值将会被识别
 
 /**
@@ -27,8 +27,6 @@ module.exports = function removeSmallAreas(image) {
         }
     }
 
-    const areaThreshold = minAreaThreshold < 1 ? width * height * minAreaThreshold : minAreaThreshold;
-
     // console.log(areas.length);
 
     // console.log(
@@ -43,12 +41,17 @@ module.exports = function removeSmallAreas(image) {
 
     // console.log(areas);
 
-    if (areas.length > 1000) {
-        return;
-    }
+    const combinedArea = combineArea(areas),
+        infoPointsPixels = combinedArea.reduce((sum, cur) => {
+            return sum + cur.pixels;
+        }, 0);
+
+    const areaThreshold = minAreaThreshold < 1 ? infoPointsPixels * minAreaThreshold : minAreaThreshold;
+
+    // console.log(areaThreshold);
 
     // 移除小面积区域
-    areas
+    combinedArea
         .filter((a) => a.pixels > 0)
         .filter((a) => a.pixels > 0 && a.pixels < areaThreshold)
         .forEach((area) => {
@@ -75,7 +78,6 @@ function standardDeviation(color1, color2) {
  */
 function floodFill(startX, startY, visited, image) {
     const { width, height, data } = image.bitmap;
-    const area = { pixels: 0, points: [] };
 
     const targetColor = [
         data[(startY * width + startX) * 4],
@@ -83,6 +85,7 @@ function floodFill(startX, startY, visited, image) {
         data[(startY * width + startX) * 4 + 2],
     ];
 
+    const area = { pixels: 0, points: [], color: targetColor };
     const stack = [[startX, startY, targetColor]];
 
     // 这里操作的是非白色部分
@@ -120,22 +123,6 @@ function floodFill(startX, startY, visited, image) {
                 [x + 1, y - 1, currentColor], // 右上
                 [x - 1, y + 1, currentColor], // 左下
                 [x + 1, y + 1, currentColor], // 右下
-                // [x + 2, y, currentColor], // 右
-                // [x - 2, y, currentColor], // 左
-                // [x, y + 2, currentColor], // 下
-                // [x, y - 2, currentColor], // 上
-                // [x - 2, y - 2, currentColor], // 左上
-                // [x + 2, y - 2, currentColor], // 右上
-                // [x - 2, y + 2, currentColor], // 左下
-                // [x + 2, y + 2, currentColor], // 右下
-                // [x + 3, y, currentColor], // 右
-                // [x - 3, y, currentColor], // 左
-                // [x, y + 3, currentColor], // 下
-                // [x, y - 3, currentColor], // 上
-                // [x - 3, y - 3, currentColor], // 左上
-                // [x + 3, y - 3, currentColor], // 右上
-                // [x - 3, y + 3, currentColor], // 左下
-                // [x + 3, y + 3, currentColor], // 右下
             ]);
         } else {
             // 这部分是边界
@@ -145,4 +132,35 @@ function floodFill(startX, startY, visited, image) {
     }
 
     return area;
+}
+
+// 进行一次色值合并
+function combineArea(areas) {
+    if (!areas || !areas.length) {
+        return [];
+    }
+
+    let combinedArea = [];
+
+    areas.forEach((area) => {
+        let { pixels, points, color } = area;
+
+        let index = combinedArea.findIndex((item) => {
+            return standardDeviation(item.color, color) < colorSD;
+        });
+
+        if (index > -1) {
+            combinedArea[index].pixels += pixels;
+            Array.prototype.push.apply(combinedArea[index].points, points);
+        } else {
+            combinedArea.push(area);
+        }
+    });
+
+    combinedArea.sort((a, b) => a.pixels - b.pixels)
+
+    // console.log(combinedArea.length);
+    // console.log(combinedArea);
+
+    return combinedArea;
 }
