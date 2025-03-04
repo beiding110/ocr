@@ -125,21 +125,24 @@ class CaptchaRecognizer {
     // const result0 = await recognizer.recognize('test0.png');
     // console.log('识别结果0:', result0);
 
-    const result1 = await recognizer.recognize('test1.png');
+    const result1 = await recognizer.recognize('./images/test1.png');
     console.log('识别结果1:', result1);
 
-    const result2 = await recognizer.recognize('test2.png');
+    const result2 = await recognizer.recognize('./images/test2.png');
     console.log('识别结果2:', result2);
 
-    const result3 = await recognizer.recognize('test3.png');
+    const result3 = await recognizer.recognize('./images/test3.png');
     console.log('识别结果3:', result3);
 
-    const result4 = await recognizer.recognize('test4.png');
+    const result4 = await recognizer.recognize('./images/test4.png');
     console.log('识别结果4:', result4);
 
-    const result5 = await recognizer.recognize('test5.png');
+    const result5 = await recognizer.recognize('./images/test5.png');
     console.log('识别结果5:', result5);
 
-    const result6 = await recognizer.recognize('test6.png');
+    const result6 = await recognizer.recognize('./images/test6.png');
     console.log('识别结果6:', result6);
+
+    const result7 = await recognizer.recognize('./images/test7.png');
+    console.log('识别结果7:', result7);
 })();
