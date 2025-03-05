@@ -12,6 +12,8 @@ const filterColor = require('./utils/filterColor.js');
 const normalizeColor = require('./utils/normalizeColor.js');
 const removeStripes = require('./utils/removeStripes.js');
 const FloodFiller = require('./utils/FloodFiller.js');
+const fillHole = require('./utils/fillHole.js');
+const toolColorAnalysis = require('./utils/toolColorAnalysis.js');
 
 class CaptchaRecognizer {
     constructor() {
@@ -41,32 +43,37 @@ class CaptchaRecognizer {
         // 过滤所有值都在200以上的颜色
         filterColor(image);
 
+        // 进行色值分析，以确定后续处理的步骤
+        const { groups } = toolColorAnalysis(image);
+
         // 颜色标准化和对比度增强
-        normalizeColor(image);
+        // 色彩太多就不标准化了？
+        // 削弱了2，增强了3/4，对156无效
+        if (groups < 2) {
+            normalizeColor(image);
+        }
 
         // 连通域去噪
         removeSmallAreas(image);
-        // removeSmallAreas(image);
-        // removeSmallAreas(image);
-        // removeSmallAreas(image);
-        // removeSmallAreas(image);
+
+        // 颜色标准化和对比度增强
+        // normalizeColor(image);
 
         //////// removeStripes(image);
 
         // 自适应直方图均衡化
         // image.contrast(0.2);
 
-        
-
         // 灰度化
         // image.greyscale();
 
         // 二值化（使用Otsu算法自动计算阈值）
         // otsuBinarization(image);
-        // simpleBinarization(image);
+        simpleBinarization(image);
 
         // 形态学修复（开运算）
         morphologicalOpen(image);
+        // fillHole(image);
 
         // 降噪（中值滤波）
         // medianFilter(image);
@@ -143,6 +150,12 @@ class CaptchaRecognizer {
     const result6 = await recognizer.recognize('./images/test6.png');
     console.log('识别结果6:', result6);
 
-    const result7 = await recognizer.recognize('./images/test7.png');
-    console.log('识别结果7:', result7);
+    // const result7 = await recognizer.recognize('./images/test7.png');
+    // console.log('识别结果7:', result7);
+
+    const result8 = await recognizer.recognize('./images/test8.png');
+    console.log('识别结果8:', result8);
+
+    const result9 = await recognizer.recognize('./images/test9.png');
+    console.log('识别结果9:', result9);
 })();
