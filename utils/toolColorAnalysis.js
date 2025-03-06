@@ -1,3 +1,5 @@
+const BREAK_GROUP_MIN_SPACE = 5; // 拆分分组的最小间隔，值以下的认为分组没被拆分
+
 module.exports = function toolColorAnalysis(image) {
     const cImage = image.clone();
 
@@ -65,6 +67,10 @@ module.exports = function toolColorAnalysis(image) {
 
     */
 
+    // getGroup(histogramR);
+    // getGroup(histogramG);
+    // getGroup(histogramB);
+
     const groups = getGroup(histogramGrey),
         middle = findMiddleNum(histogramGrey, image);
 
@@ -87,58 +93,104 @@ function arrayFactory(num) {
 function getGroup(histogram) {
     let effectiveHistogram = histogram.slice(0, 240);
 
-    let firstNotZeroIndex = 0;
+    // 正向查非零起点
+    for (let i = 0; i < effectiveHistogram.length; i++) {
+        if (effectiveHistogram[i].length === 0) {
+            effectiveHistogram.shift();
+            i--;
+        } else {
+            break;
+        }
+    }
+
+    // 反向查非零终点
+    effectiveHistogram.reverse();
+
+    for (let i = 0; i < effectiveHistogram.length; i++) {
+        if (effectiveHistogram[i].length === 0) {
+            effectiveHistogram.shift();
+            i--;
+        } else {
+            break;
+        }
+    }
+
+    // 数组复位
+    effectiveHistogram.reverse();
+
+    // 取直方图的最大最小值
     let minOfEffectiveHistogram = 9999,
         maxOfEffectiveHistogram = 0;
 
-    effectiveHistogram.reverse().forEach((item, index) => {
-        // 区域最小范围
-        if (item.length) {
-            firstNotZeroIndex = index;
-        }
+    effectiveHistogram.forEach((item) => {
+        // 取最小值
+        minOfEffectiveHistogram = Math.min(item.length, minOfEffectiveHistogram);
+
+        // 取最大值
+        maxOfEffectiveHistogram = Math.max(item.length, maxOfEffectiveHistogram);
     });
 
-    firstNotZeroIndex = 240 - firstNotZeroIndex - 1;
+    // 去掉最小值
+    effectiveHistogram = effectiveHistogram.map((item) => {
+        return item.length - minOfEffectiveHistogram;
+    });
 
-    // 重新定义起始点
-    // 将所有值减去最小值
-    effectiveHistogram = effectiveHistogram
-        .reverse()
-        .slice(firstNotZeroIndex)
-        .map((item) => {
-            // 取最小值
-            minOfEffectiveHistogram = Math.min(item.length, minOfEffectiveHistogram);
-
-            // 取最大值
-            maxOfEffectiveHistogram = Math.max(item.length, maxOfEffectiveHistogram);
-
-            return item;
-        })
-        .map((item) => {
-            return item.length - minOfEffectiveHistogram;
-        });
-
-    // 计算连通域个数
-    let groupNum = 0;
+    // 计算直方图连通域个数
+    let groupNum = 0,
+        groupArr = [],
+        spaceArr = [];
     // console.log(minOfEffectiveHistogram, maxOfEffectiveHistogram);
 
-    for (let i = 0; i < effectiveHistogram.length; i++) {
-        let prev = effectiveHistogram[i - 1],
-            current = effectiveHistogram[i],
-            next = effectiveHistogram[i + 1];
+    // 放一个终点，不然取不到最后一组值
 
-        if (i > 0 && prev > 0 && current === 0) {
-            groupNum++;
+    while (effectiveHistogram.length) {
+        // 切割有值段（尾）
+        let notZeroIndex = effectiveHistogram.findIndex((item) => item),
+            spaceItem = effectiveHistogram.splice(0, notZeroIndex);
+
+        if (spaceItem.length) {
+            spaceArr.push(spaceItem);
         }
 
-        if (current === 0 && next > 0 && next < 10) {
-            effectiveHistogram[i + 1] = 0;
+        // 切割无值段（头）
+        let zeroIndex;
+
+        if (!effectiveHistogram.includes(0)) {
+            zeroIndex = effectiveHistogram.length;
+        } else {
+            zeroIndex = effectiveHistogram.findIndex((item) => !item);
+        }
+
+        let groupItem = effectiveHistogram.splice(0, zeroIndex);
+
+        if (groupItem.length) {
+            groupNum++;
+
+            groupArr.push(groupItem);
+        }
+    }
+
+    // 合并阈值以下的间隙
+    if (BREAK_GROUP_MIN_SPACE) {
+        spaceArr.forEach((item) => {
+            if (item.length <= BREAK_GROUP_MIN_SPACE) {
+                groupNum--;
+            }
+        });
+
+        // 进行补偿
+        if (spaceArr.length > groupArr.length) {
+            // 0 1 0形式
+            groupNum += 2;
+        } else if (spaceArr.length === groupArr.length) {
+            // 0 1 0 1 形式
+            groupNum += 1;
         }
     }
 
     // console.log(JSON.stringify(effectiveHistogram));
 
-    // console.log(groupNum);
+    console.log(groupNum);
 
     return groupNum;
 }
