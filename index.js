@@ -72,7 +72,7 @@ class CaptchaRecognizer {
         simpleBinarization(image);
 
         // 形态学修复（开运算）
-        morphologicalOpen(image);
+        // morphologicalOpen(image);
         // fillHole(image);
 
         // 降噪（中值滤波）
