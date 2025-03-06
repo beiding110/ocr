@@ -38,7 +38,7 @@ class CaptchaRecognizer {
         clearBoundaryColor(image);
 
         // 统一图片大小
-        image.scaleToFit({ w: 500, h: 300 });
+        image.scaleToFit({ w: 500, h: 500 });
 
         // 过滤所有值都在200以上的颜色
         filterColor(image);
@@ -56,36 +56,22 @@ class CaptchaRecognizer {
         // 连通域去噪
         removeSmallAreas(image);
 
-        // 颜色标准化和对比度增强
-        // normalizeColor(image);
-
-        //////// removeStripes(image);
-
-        // 自适应直方图均衡化
-        // image.contrast(0.2);
-
-        // 灰度化
-        // image.greyscale();
-
         // 二值化（使用Otsu算法自动计算阈值）
         // otsuBinarization(image);
         simpleBinarization(image);
 
         // 形态学修复（开运算）
         // morphologicalOpen(image);
-        // fillHole(image);
+        fillHole(image);
 
         // 降噪（中值滤波）
         // medianFilter(image);
 
-        // 高斯模糊（降噪，低频滤波）
-        image.gaussian(4);
-
-        // 直方图均衡化（增强对比度）
-        // image.normalize();
-
         // image.scaleToFit({ w: orgSize[0], h: orgSize[1] });
         image.scaleToFit({ w: 100, h: 100 });
+
+        // 高斯模糊（降噪，低频滤波）
+        image.gaussian(1);
 
         // 4. 可选：保存处理后的图像用于调试
         await image.write(imagePath.replace('.png', '-clean.png'));
@@ -127,35 +113,47 @@ class CaptchaRecognizer {
 
 // 使用示例
 (async () => {
+    var ts = new Date().getTime();
+
+    function compareResult(result, answer) {
+        if (result.toLowerCase() === answer.toLowerCase()) {
+            return `${result} √`;
+        }
+
+        return `${result} × ${answer}`;
+    }
+
     const recognizer = new CaptchaRecognizer();
 
     // const result0 = await recognizer.recognize('test0.png');
     // console.log('识别结果0:', result0);
 
     const result1 = await recognizer.recognize('./images/test1.png');
-    console.log('识别结果1:', result1);
+    console.log('识别结果1:', compareResult(result1, 'NJBB'));
 
     const result2 = await recognizer.recognize('./images/test2.png');
-    console.log('识别结果2:', result2);
+    console.log('识别结果2:', compareResult(result2, 'AZSd'));
 
     const result3 = await recognizer.recognize('./images/test3.png');
-    console.log('识别结果3:', result3);
+    console.log('识别结果3:', compareResult(result3, '8MvHb'));
 
     const result4 = await recognizer.recognize('./images/test4.png');
-    console.log('识别结果4:', result4);
+    console.log('识别结果4:', compareResult(result4, 'vimowiy'));
 
     const result5 = await recognizer.recognize('./images/test5.png');
-    console.log('识别结果5:', result5);
+    console.log('识别结果5:', compareResult(result5, 'iucz5'));
 
     const result6 = await recognizer.recognize('./images/test6.png');
-    console.log('识别结果6:', result6);
+    console.log('识别结果6:', compareResult(result6, 'm3dv8'));
 
     // const result7 = await recognizer.recognize('./images/test7.png');
     // console.log('识别结果7:', result7);
 
     const result8 = await recognizer.recognize('./images/test8.png');
-    console.log('识别结果8:', result8);
+    console.log('识别结果8:', compareResult(result8, 'WXB4'));
 
     const result9 = await recognizer.recognize('./images/test9.png');
-    console.log('识别结果9:', result9);
+    console.log('识别结果9:', compareResult(result9, 'MGRg'));
+
+    console.log(`耗时：${(new Date().getTime() - ts) / 1000}s`);
 })();
