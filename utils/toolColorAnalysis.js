@@ -65,8 +65,12 @@ module.exports = function toolColorAnalysis(image) {
 
     */
 
+    const groups = getGroup(histogramGrey),
+        middle = findMiddleNum(histogramGrey, image);
+
     return {
-        groups: getGroup(histogramGrey),
+        groups,
+        middle,
     };
 };
 
@@ -137,4 +141,39 @@ function getGroup(histogram) {
     // console.log(groupNum);
 
     return groupNum;
+}
+
+function findMiddleNum(histogram, image) {
+    let arr = [...histogram];
+
+    arr = arr
+        .sort((a, b) => {
+            return a.length - b.length;
+        })
+        .filter((item) => {
+            return item.length;
+        });
+
+    if (arr.length % 2 === 0) {
+        return arr[arr.length / 2].length;
+    }
+
+    let larger = arr[Math.ceil(arr.length / 2)].length,
+        smaller = arr[Math.floor(arr.length / 2)].length;
+
+    // removePoints(image, arr.slice(0, Math.floor(arr.length / 2)));
+
+    return (larger + smaller) / 2;
+}
+
+function removePoints(image, histogram) {
+    const { data } = image.bitmap;
+
+    histogram.forEach((points) => {
+        points.forEach((item) => {
+            let { idx } = item;
+
+            data[idx] = data[idx + 1] = data[idx + 2] = 255;
+        });
+    });
 }
