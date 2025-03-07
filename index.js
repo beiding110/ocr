@@ -2,16 +2,11 @@ const { Jimp } = require('jimp');
 const Tesseract = require('tesseract.js');
 const path = require('path');
 
-const medianFilter = require('./utils/medianFilter.js');
-const otsuBinarization = require('./utils/otsuBinarization.js');
 const simpleBinarization = require('./utils/simpleBinarization.js');
 const clearBoundaryColor = require('./utils/clearBoundaryColor.js');
-const morphologicalOpen = require('./utils/morphologicalOpen.js');
 const removeSmallAreas = require('./utils/removeSmallAreas.js');
 const filterColor = require('./utils/filterColor.js');
 const normalizeColor = require('./utils/normalizeColor.js');
-const removeStripes = require('./utils/removeStripes.js');
-const FloodFiller = require('./utils/FloodFiller.js');
 const fillHole = require('./utils/fillHole.js');
 const toolColorAnalysis = require('./utils/toolColorAnalysis.js');
 
@@ -31,8 +26,6 @@ class CaptchaRecognizer {
     // 图像预处理管道
     async preprocessImage(imagePath) {
         const image = await Jimp.read(imagePath);
-
-        const orgSize = [image.bitmap.width, image.bitmap.height];
 
         // 清除边界颜色
         clearBoundaryColor(image);
@@ -61,11 +54,7 @@ class CaptchaRecognizer {
         simpleBinarization(image);
 
         // 形态学修复（开运算）
-        // morphologicalOpen(image);
         fillHole(image);
-
-        // 降噪（中值滤波）
-        // medianFilter(image);
 
         // 高斯模糊（降噪，低频滤波）
         let gaussianNum = 4;
@@ -76,14 +65,10 @@ class CaptchaRecognizer {
         }
         image.gaussian(gaussianNum);
 
-        // image.scaleToFit({ w: orgSize[0], h: orgSize[1] });
         image.scaleToFit({ w: 100, h: 100 });
 
-        // 高斯模糊（降噪，低频滤波）
-        // image.gaussian(1);
-
         // 4. 可选：保存处理后的图像用于调试
-        await image.write(imagePath.replace('.png', '-clean.png'));
+        // await image.write(imagePath.replace('.png', '-clean.png'));
 
         return image;
     }
@@ -110,7 +95,7 @@ class CaptchaRecognizer {
             } = await this.worker.recognize(imageBuffer);
 
             // 后处理：清理识别结果
-            return text.replace(/\s+/g, '').toUpperCase();
+            return text.replace(/\s+/g, '');
         } catch (e) {
             console.error(e);
         } finally {
