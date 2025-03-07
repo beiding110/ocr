@@ -3,13 +3,15 @@ module.exports = function otsuBinarization(image) {
     const { data } = image.bitmap;
     const histogram = new Array(256).fill(0);
 
+    const { data: grayData } = image.clone().greyscale().bitmap;
+
     // 计算直方图（直接遍历数据）
-    for (let i = 0; i < data.length; i += 4) {
-        histogram[data[i]]++;
+    for (let i = 0; i < grayData.length; i += 4) {
+        histogram[grayData[i]]++;
     }
 
     // 计算最佳阈值（原算法保持不变）
-    let total = data.length / 4;
+    let total = grayData.length / 4;
     let sum = histogram.reduce((s, v, i) => s + i * v, 0);
 
     let sumB = 0,
