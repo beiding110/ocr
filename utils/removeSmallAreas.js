@@ -1,5 +1,5 @@
 // 连通域去噪（移除小面积区域）
-const minAreaThreshold = 0.035// 连通域占图像像素比例，根据最小字符笔画宽度设定
+const minAreaThreshold = 0.035; // 连通域占图像像素比例，根据最小字符笔画宽度设定
 const colorSD = 25; // 色彩标准差，标准差内的色值将会被识别
 
 /**
@@ -41,8 +41,8 @@ module.exports = function removeSmallAreas(image) {
 
     // console.log(areas);
 
-    const combinedArea = combineArea(areas),
-        infoPointsPixels = combinedArea.reduce((sum, cur) => {
+    const combinedAreas = combineArea(areas),
+        infoPointsPixels = combinedAreas.reduce((sum, cur) => {
             return sum + cur.pixels;
         }, 0);
 
@@ -50,8 +50,10 @@ module.exports = function removeSmallAreas(image) {
 
     // console.log(areaThreshold);
 
+    // console.log(combinedAreas.filter((a) => a.pixels > 0).length);
+
     // 移除小面积区域
-    combinedArea
+    combinedAreas
         .filter((a) => a.pixels > 0)
         .filter((a) => a.pixels > 0 && a.pixels < areaThreshold)
         .forEach((area) => {
@@ -62,6 +64,11 @@ module.exports = function removeSmallAreas(image) {
                 data[idx + 1] = data[idx + 2] = 255;
             });
         });
+
+    return {
+        areas: areas.length, // 连通域个数
+        combinedAreas: combinedAreas.length, // 按色值合并后的连通域个数
+    };
 };
 
 // 标准差
@@ -140,27 +147,27 @@ function combineArea(areas) {
         return [];
     }
 
-    let combinedArea = [];
+    let combinedAreas = [];
 
     areas.forEach((area) => {
         let { pixels, points, color } = area;
 
-        let index = combinedArea.findIndex((item) => {
+        let index = combinedAreas.findIndex((item) => {
             return standardDeviation(item.color, color) < colorSD;
         });
 
         if (index > -1) {
-            combinedArea[index].pixels += pixels;
-            Array.prototype.push.apply(combinedArea[index].points, points);
+            combinedAreas[index].pixels += pixels;
+            Array.prototype.push.apply(combinedAreas[index].points, points);
         } else {
-            combinedArea.push(area);
+            combinedAreas.push(area);
         }
     });
 
-    combinedArea.sort((a, b) => a.pixels - b.pixels)
+    combinedAreas.sort((a, b) => a.pixels - b.pixels);
 
-    // console.log(combinedArea.length);
-    // console.log(combinedArea);
+    // console.log(combinedAreas.length);
+    // console.log(combinedAreas);
 
-    return combinedArea;
+    return combinedAreas;
 }
