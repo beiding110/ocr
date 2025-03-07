@@ -190,7 +190,7 @@ function getGroup(histogram) {
 
     // console.log(JSON.stringify(effectiveHistogram));
 
-    console.log(groupNum);
+    // console.log(groupNum);
 
     return groupNum;
 }
