@@ -54,7 +54,7 @@ class CaptchaRecognizer {
         }
 
         // 连通域去噪
-        removeSmallAreas(image);
+        const { combinedAreas } = removeSmallAreas(image);
 
         // 二值化（使用Otsu算法自动计算阈值）
         // otsuBinarization(image);
@@ -67,11 +67,20 @@ class CaptchaRecognizer {
         // 降噪（中值滤波）
         // medianFilter(image);
 
+        // 高斯模糊（降噪，低频滤波）
+        let gaussianNum = 4;
+
+        if (combinedAreas / groups < 10) {
+            // 色值跨度不大
+            gaussianNum = 3;
+        }
+        image.gaussian(gaussianNum);
+
         // image.scaleToFit({ w: orgSize[0], h: orgSize[1] });
         image.scaleToFit({ w: 100, h: 100 });
 
         // 高斯模糊（降噪，低频滤波）
-        image.gaussian(1);
+        // image.gaussian(1);
 
         // 4. 可选：保存处理后的图像用于调试
         await image.write(imagePath.replace('.png', '-clean.png'));
