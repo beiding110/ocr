@@ -1,7 +1,8 @@
 // 清理图片边界上存在的颜色
+const BOUNDARY_SIZE = 4; // 判定为边界的像素个数
+
 module.exports = function clearBoundaryColor(image) {
     const { data, width, height } = image.bitmap,
-        boundarySize = 4,
         colors = [];
 
     // 标记颜色
@@ -10,10 +11,10 @@ module.exports = function clearBoundaryColor(image) {
             colIndex = (i / 4) % width;
 
         if (
-            rowIndex < boundarySize ||
-            rowIndex + boundarySize === height ||
-            colIndex < boundarySize ||
-            colIndex + boundarySize === width
+            rowIndex < BOUNDARY_SIZE ||
+            rowIndex + BOUNDARY_SIZE === height ||
+            colIndex < BOUNDARY_SIZE ||
+            colIndex + BOUNDARY_SIZE === width
         ) {
             colors.push([data[i], data[i + 1], data[i + 2]]);
         }

@@ -1,5 +1,5 @@
-const roundX = [-1, 0, 1];
-const roundY = [-1, 0, 1];
+const ROUND_X = [-1, 0, 1];
+const ROUND_Y = [-1, 0, 1];
 
 module.exports = function (image) {
     const { width, height, data } = image.bitmap;
@@ -32,10 +32,10 @@ function findBorderPoints(width, height, data) {
             }
 
             // 是否是边界
-            for (let ry = 0; ry < roundY.length; ry++) {
-                for (let rx = 0; rx < roundX.length; rx++) {
-                    let posX = x + roundX[rx],
-                        posY = y + roundY[ry];
+            for (let ry = 0; ry < ROUND_Y.length; ry++) {
+                for (let rx = 0; rx < ROUND_X.length; rx++) {
+                    let posX = x + ROUND_X[rx],
+                        posY = y + ROUND_Y[ry];
 
                     if (posX > 0 && posX < width && posY > 0 && posY < height) {
                         // 在长宽范围内

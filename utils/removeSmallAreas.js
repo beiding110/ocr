@@ -1,6 +1,6 @@
 // 连通域去噪（移除小面积区域）
-const minAreaThreshold = 0.035; // 连通域占图像像素比例，根据最小字符笔画宽度设定
-const colorSD = 25; // 色彩标准差，标准差内的色值将会被识别
+const THRESHOLD_MIN_AREA = 0.035; // 连通域占图像像素比例，根据最小字符笔画宽度设定
+const COLOR_SD = 25; // 色彩标准差，标准差内的色值将会被识别
 
 /**
  * 连通域去噪（移除小面积区域）
@@ -46,7 +46,7 @@ module.exports = function removeSmallAreas(image) {
             return sum + cur.pixels;
         }, 0);
 
-    const areaThreshold = minAreaThreshold < 1 ? infoPointsPixels * minAreaThreshold : minAreaThreshold;
+    const areaThreshold = THRESHOLD_MIN_AREA < 1 ? infoPointsPixels * THRESHOLD_MIN_AREA : THRESHOLD_MIN_AREA;
 
     // console.log(areaThreshold);
 
@@ -107,7 +107,7 @@ function floodFill(startX, startY, visited, image) {
 
         const currentColor = [data[idx * 4], data[idx * 4 + 1], data[idx * 4 + 2]];
 
-        if (standardDeviation([255, 255, 255], currentColor) < colorSD) {
+        if (standardDeviation([255, 255, 255], currentColor) < COLOR_SD) {
             // 白色连通域
             continue;
         }
@@ -117,7 +117,7 @@ function floodFill(startX, startY, visited, image) {
         // }
 
         // 颜色之间的标准差
-        if (standardDeviation(currentColor, targetColor) < colorSD) {
+        if (standardDeviation(currentColor, targetColor) < COLOR_SD) {
             area.pixels++;
             area.points.push([x, y]);
 
@@ -153,7 +153,7 @@ function combineArea(areas) {
         let { pixels, points, color } = area;
 
         let index = combinedAreas.findIndex((item) => {
-            return standardDeviation(item.color, color) < colorSD;
+            return standardDeviation(item.color, color) < COLOR_SD;
         });
 
         if (index > -1) {
